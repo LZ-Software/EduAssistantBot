@@ -9,9 +9,13 @@ __pycache__/
 # IDEA
 .idea/
 
+# Mac
+.DS_Store
+
 # Project
 schedule/
 auth.json
+mirea-assistant.db
 *.html
 
 # Distribution / packaging
