@@ -22,27 +22,27 @@ class DB:
 
     def add_group(self, group):
         cursor = self.connection.cursor()
-        cmd = 'INSERT INTO Grups(name) VALUES (?)'
+        cmd = 'INSERT INTO StudyGroup(name) VALUES (?)'
         cursor.execute(cmd, [group])
         self.connection.commit()
 
     def add_week(self, week):
         cursor = self.connection.cursor()
-        cmd = 'INSERT INTO Week(name) VALUES (?)'
+        cmd = 'INSERT INTO Week(parity) VALUES (?)'
         cursor.execute(cmd, [week])
         self.connection.commit()
 
     def add_day(self, day):
         cursor = self.connection.cursor()
-        cmd = 'INSERT INTO Days(name) VALUES (?)'
+        cmd = 'INSERT INTO Days(day_number) VALUES (?)'
         cursor.execute(cmd, [day])
         self.connection.commit()
 
     def add_schedule(self, group, para, day, week, subject, subject_type, teacher, auditorium):
         cursor = self.connection.cursor()
         request = 'INSERT INTO Schedule(group_id, para, day_id, week_id, subject, subject_type, teacher, auditorium) '\
-                  'VALUES ((SELECT id FROM Grups WHERE name = ?), ?, (SELECT id FROM Days WHERE name = ?), (SELECT id '\
-                  'FROM Week WHERE name = ?), ?, ?, ?, ?)'
+                  'VALUES ((SELECT id FROM StudyGroup WHERE name = ?), ?, (SELECT id FROM Days WHERE day_number = ?), '\
+                  '(SELECT id FROM Week WHERE parity = ?), ?, ?, ?, ?)'
         data_tuple = ([group], [para], [day], [week], [subject], [subject_type], [teacher], [auditorium])
         cursor.execute(request, data_tuple)
         self.connection.commit()
