@@ -2,6 +2,7 @@ import enum
 import re
 
 from db import DB
+from log import Logger
 
 from openpyxl import load_workbook
 
@@ -29,7 +30,10 @@ class XLSXParser:
 
     def parse_file(self):
 
+        Logger.info(self.__file)
+
         db = DB()
+        db.create_db_if_not_exists()
 
         wb = load_workbook(self.__file)
         ws = wb.active
