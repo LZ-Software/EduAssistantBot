@@ -1,8 +1,11 @@
 import os
+
 import requests
 import shutil
 
 from log import Logger
+
+from sys import platform
 
 
 class Downloader:
