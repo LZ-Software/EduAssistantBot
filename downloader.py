@@ -2,6 +2,8 @@ import os
 import requests
 import shutil
 
+from log import Logger
+
 
 class Downloader:
 
@@ -9,7 +11,7 @@ class Downloader:
 	def __create_dir(path):
 		if os.path.isdir(path):
 			shutil.rmtree(path)
-			os.mkdir(path)
+		os.mkdir(path)
 
 	@staticmethod
 	def download_file(url, filename):
@@ -18,9 +20,9 @@ class Downloader:
 			with open(f'{filename}', 'wb') as f:
 				r.raw.decode_content = True
 				shutil.copyfileobj(r.raw, f)
-				print('Got schedule')
+				Logger.ok(f'РАСПИСАНИЕ [{filename}] НАЙДЕНО')
 		else:
-			raise FileNotFoundError('Can\'t download file')
+			Logger.error(f'РАСПИСАНИЕ [{filename}] НЕ НАЙДЕНО')
 
 	@staticmethod
 	def download_files(files):
@@ -34,6 +36,6 @@ class Downloader:
 				with open(f'{folder}\\{name}', 'wb') as f:
 					r.raw.decode_content = True
 					shutil.copyfileobj(r.raw, f)
-					print(name)
+					Logger.ok(f'ФАЙЛ [{name}] ЗАГРУЖЕН')
 			else:
-				print(f'ERROR {name}')
+				Logger.error(f'ФАЙЛ [{name}] НЕ ЗАГРУЖЕН')
