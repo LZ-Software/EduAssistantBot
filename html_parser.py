@@ -28,7 +28,7 @@ def get_name(link):
 
 class HTMLParser:
 
-	__excluded_words = ('гиа', 'экз', 'зач', 'колледж', 'п.г', 'pdf', 'doc', 'docx')
+	__excluded_words = ('гиа', 'экз', 'зач', 'маг', 'колледж', 'п.г', 'pdf', 'doc', 'docx')
 	__file = None
 	__files = dict()
 
