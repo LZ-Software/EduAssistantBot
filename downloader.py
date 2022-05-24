@@ -2,7 +2,7 @@ import os
 import requests
 import shutil
 
-from sys import platform
+from log import Logger
 
 
 class Downloader:
@@ -20,9 +20,9 @@ class Downloader:
 			with open(f'{filename}', 'wb') as f:
 				r.raw.decode_content = True
 				shutil.copyfileobj(r.raw, f)
-				print('Got schedule')
+				Logger.ok(f'РАСПИСАНИЕ [{filename}] НАЙДЕНО')
 		else:
-			raise FileNotFoundError('Can\'t download file')
+			Logger.error(f'РАСПИСАНИЕ [{filename}] НЕ НАЙДЕНО')
 
 	@staticmethod
 	def download_files(files):
@@ -43,6 +43,6 @@ class Downloader:
 				with open(path, 'wb') as f:
 					r.raw.decode_content = True
 					shutil.copyfileobj(r.raw, f)
-					print(name)
+					Logger.ok(f'ФАЙЛ [{name}] ЗАГРУЖЕН')
 			else:
-				print(f'ERROR {name}')
+				Logger.error(f'ФАЙЛ [{name}] НЕ ЗАГРУЖЕН')
