@@ -2,6 +2,8 @@ import os
 import requests
 import shutil
 
+from sys import platform
+
 
 class Downloader:
 
@@ -9,7 +11,7 @@ class Downloader:
 	def __create_dir(path):
 		if os.path.isdir(path):
 			shutil.rmtree(path)
-			os.mkdir(path)
+		os.mkdir(path)
 
 	@staticmethod
 	def download_file(url, filename):
@@ -24,14 +26,21 @@ class Downloader:
 
 	@staticmethod
 	def download_files(files):
-		folder = f'{os.getcwd()}\\schedule'
+		if platform == 'win32':
+			folder = f'{os.getcwd()}\\schedule'
+		else:
+			folder = f'{os.getcwd()}/schedule'
 		Downloader.__create_dir(folder)
 		for file in files.items():
 			name = file[0]
 			url = file[1]
 			r = requests.get(url, stream=True)
 			if r.status_code == 200:
-				with open(f'{folder}\\{name}', 'wb') as f:
+				if platform == 'win32':
+					path = f'{folder}\\{name}'
+				else:
+					path = f'{folder}/{name}'
+				with open(path, 'wb') as f:
 					r.raw.decode_content = True
 					shutil.copyfileobj(r.raw, f)
 					print(name)
