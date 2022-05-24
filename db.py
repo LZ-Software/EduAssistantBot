@@ -14,17 +14,32 @@ class DB:
 
     def __init__(self):
         self.connection = sqlite3.connect('mirea-assistant.db')
-        self.__create_db()
 
-    def __create_db(self):
-        cursor = self.connection.cursor()
-        cursor.executescript(read('request.txt'))
-        self.connection.commit()
-        self.__init_week()
-        self.__init_days()
+    def __get_group_count(self):
+        try:
+            cursor = self.connection.cursor()
+            cmd = 'SELECT COUNT(*) FROM StudyGroup'
+            cursor.execute(cmd)
+            records = cursor.fetchall()
+            count = records[0][0]
+            Logger.ok(f'ГРУППЫ В БАЗЕ [{count}]')
+            return count
+        except sqlite3.DatabaseError:
+            Logger.error(f'ОШИБКА ПОЛУЧЕНИЯ ГРУПП ИЗ БАЗЫ')
+            return 0
 
-    def close_connection(self):
-        self.connection.close()
+    def __get_schedule_count(self):
+        try:
+            cursor = self.connection.cursor()
+            cmd = 'SELECT COUNT(*) FROM Schedule'
+            cursor.execute(cmd)
+            records = cursor.fetchall()
+            count = records[0][0]
+            Logger.ok(f'ЗАПИСЕЙ РАСПИСАНИЯ В БАЗЕ [{count}]')
+            return count
+        except sqlite3.DatabaseError:
+            Logger.error(f'ОШИБКА ПОЛУЧЕНИЯ РАСПИСАНИЯ ИЗ БАЗЫ')
+            return 0
 
     def __init_week(self):
         self.__add_week(0)
@@ -41,7 +56,7 @@ class DB:
             cursor.execute(cmd, {'d': day})
             self.connection.commit()
             Logger.ok(f'ДЕНЬ [{day}] ДОБАВЛЕН')
-        except sqlite3.IntegrityError:
+        except sqlite3.DatabaseError:
             Logger.error(f'ДЕНЬ [{day}] НЕ ДОБАВЛЕН')
 
     def __add_week(self, week):
@@ -51,8 +66,26 @@ class DB:
             cursor.execute(cmd, {'p': week})
             self.connection.commit()
             Logger.ok(f'НЕДЕЛЯ [{week}] ДОБАВЛЕНА')
-        except sqlite3.IntegrityError:
+        except sqlite3.DatabaseError:
             Logger.error(f'НЕДЕЛЯ [{week}] НЕ ДОБАВЛЕНА')
+
+    def create_db_if_not_exists(self):
+        cursor = self.connection.cursor()
+        cursor.executescript(read('request.txt'))
+        self.connection.commit()
+        self.__init_week()
+        self.__init_days()
+
+    def has_records(self):
+        groups = self.__get_group_count()
+        schedule = self.__get_schedule_count()
+        try:
+            if schedule / groups == 72:
+                return True
+            else:
+                return False
+        except ZeroDivisionError:
+            return False
 
     def add_group(self, group):
         try:
@@ -61,7 +94,7 @@ class DB:
             cursor.execute(cmd, [group])
             self.connection.commit()
             Logger.ok(f'ГРУППА [{group}] ДОБАВЛЕНА')
-        except sqlite3.IntegrityError:
+        except sqlite3.DatabaseError:
             Logger.error(f'ГРУППА [{group}] НЕ ДОБАВЛЕНА')
             raise StopIteration
 
@@ -74,7 +107,7 @@ class DB:
             data = [group, para, day, week, subject, subject_type, teacher, auditorium]
             cursor.execute(request, data)
             self.connection.commit()
-        except sqlite3.IntegrityError:
+        except sqlite3.DatabaseError:
             if week == 0:
                 w = 'ЧЕТНАЯ'
             elif week == 1:
@@ -82,3 +115,6 @@ class DB:
             else:
                 w = '?'
             Logger.error(f'ГРУППА [{group}] НЕДЕЛЯ [{w}] ДЕНЬ [{day}] ПАРА [{para}] - ОШИБКА')
+
+    def close_connection(self):
+        self.connection.close()

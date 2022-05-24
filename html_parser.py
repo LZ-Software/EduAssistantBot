@@ -32,12 +32,12 @@ class HTMLParser:
 	__file = None
 	__files = dict()
 
+	def __delete_parsed_file(self):
+		os.remove(self.__file)
+
 	def get_html(self):
 		self.__file = f'{get_rand_str(10)}.html'
 		Downloader.download_file('https://www.mirea.ru/schedule/', self.__file)
-
-	def delete_parsed_file(self):
-		os.remove(self.__file)
 
 	def parse_html(self):
 		with open(self.__file, "r", encoding='utf-8') as file:
@@ -50,7 +50,5 @@ class HTMLParser:
 				if not has_word(self.__excluded_words, link):
 					name = get_name(link)
 					self.__files[name] = link
-		self.delete_parsed_file()
-
-	def get_schedule_files(self):
+		self.__delete_parsed_file()
 		return self.__files
