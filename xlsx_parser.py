@@ -1,16 +1,22 @@
 import enum
 import re
+import os
 
 from db import DB
 from log import Logger
 
 from openpyxl import load_workbook
+from sys import platform
 
 
 class XLSXParser:
 
     def __init__(self, file):
-        self.__file = file
+        if platform == 'win32':
+            folder = f'{os.getcwd()}\\schedule\\'
+        else:
+            folder = f'{os.getcwd()}/schedule/'
+        self.__file = f'{folder}{file}'
 
     class __Days(enum.Enum):
         MONDAY = 1
@@ -33,7 +39,6 @@ class XLSXParser:
         Logger.info(self.__file)
 
         db = DB()
-        db.create_db_if_not_exists()
 
         wb = load_workbook(self.__file)
         ws = wb.active
