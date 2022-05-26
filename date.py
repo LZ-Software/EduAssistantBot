@@ -19,22 +19,6 @@ class Date:
         return week_number
 
     @staticmethod
-    def get_day_number():
-        current_day_id = datetime.date.today().weekday() + 1
-        return current_day_id
-
-    @staticmethod
-    def get_today():
-        today = datetime.date.today()
-        return today
-
-    @staticmethod
-    def get_next_monday():
-        today = datetime.date.today()
-        next_monday = today + datetime.timedelta(days=-today.weekday(), weeks=1)
-        return next_monday
-
-    @staticmethod
     def get_parity():
         if Date.get_study_week_number() % 2 == 0:
             return 0
@@ -42,33 +26,50 @@ class Date:
             return 1
 
     @staticmethod
-    def get_current_date_str(shift):
-        if shift == 0:
-            day = datetime.date.today()
-        else:
-            day = datetime.date.today() + datetime.timedelta(days=shift)
+    def get_day_number():
+        current_day_id = datetime.date.today().weekday() + 1
+        return current_day_id
+
+    @staticmethod
+    def get_today_date():
+        today = datetime.date.today()
+        return today
+
+    @staticmethod
+    def get_next_monday_date():
+        today = datetime.date.today()
+        next_monday = today + datetime.timedelta(days=-today.weekday(), weeks=1)
+        return next_monday
+
+    @staticmethod
+    def get_date_name(date):
         if sys.platform == 'win32':
             locale.setlocale(locale.LC_ALL, 'rus_rus')
         else:
             locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
-        day_format = day.strftime('%d %b %Y')
+        day_format = date.strftime('%d %b %Y')
         return day_format
 
     @staticmethod
-    def get_weekday_name_str(shift):
-        if shift == 0:
-            day = datetime.date.today()
-        else:
-            day = datetime.date.today() + datetime.timedelta(days=shift)
+    def get_weekday_name(date):
         if sys.platform == 'win32':
             locale.setlocale(locale.LC_ALL, 'rus_rus')
         else:
             locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
-        day_name = calendar.day_name[day.weekday()].title()
+        day_name = calendar.day_name[date.weekday()].title()
         return day_name
 
     @staticmethod
-    def get_formatted_date_title(day=0, week=0):
-        formatted_date = f'<b>[Неделя {Date.get_study_week_number()+week}]\n{Date.get_weekday_name_str(day)}, ' \
-                         f'{Date.get_current_date_str(day)}</b>\n\n'
+    def find_date(start_date, shift=0):
+        if shift == 0:
+            day = start_date
+        else:
+            day = start_date + datetime.timedelta(days=shift)
+        return day
+
+    @staticmethod
+    def get_formatted_date_title(date, week_number):
+        #  [Неделя 0]
+        #  Понедельник, 1 январь 2000
+        formatted_date = f'<b>[Неделя {week_number}]\n{Date.get_weekday_name(date)}, {Date.get_date_name(date)}</b>\n\n'
         return formatted_date
