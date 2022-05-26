@@ -6,7 +6,6 @@ from threading import Thread
 
 from db import DB
 from log import Logger
-from date import Date
 from downloader import Downloader
 from html_parser import HTMLParser
 from xlsx_parser import XLSXParser
@@ -122,24 +121,19 @@ def func(message):
     elif message.text == 'Сегодня':
         bot.send_message(message.chat.id,
                          parse_mode='html',
-                         text=db.get_day_schedule(group_id,
-                                                  Date.get_parity(),
-                                                  Date.get_day_number()))
+                         text=db.get_today(group_id))
     elif message.text == 'Завтра':
         bot.send_message(message.chat.id,
                          parse_mode='html',
-                         text=db.get_day_schedule(group_id,
-                                                  Date.get_parity(),
-                                                  Date.get_day_number(),
-                                                  shift=1,))
+                         text=db.get_tomorrow(group_id))
     elif message.text == 'Эта неделя':
-        for day in db.get_week_schedule(group_id):
+        for day in db.get_week(group_id):
             bot.send_message(message.chat.id,
                              parse_mode='html',
                              text=day,
                              reply_markup=get_schedule_markup())
     elif message.text == 'Следующая неделя':
-        for day in db.get_week_schedule(group_id, next_week=True):
+        for day in db.get_week(group_id, next_week=True):
             bot.send_message(message.chat.id,
                              parse_mode='html',
                              text=day,
@@ -157,10 +151,9 @@ def func(message):
                          text='Введите то, о чем вас просят, или нажмите одну из кнопок')
 
 
-if db.has_records():
-    start_bot()
-else:
+if not db.has_records():
     th = Thread(target=get_schedule())
     th.start()
     th.join()
-    start_bot()
+
+start_bot()
