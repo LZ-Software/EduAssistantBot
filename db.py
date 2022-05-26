@@ -275,10 +275,8 @@ class DB:
         return title + schedule
 
     def get_week(self, group_id, next_week=False):
-
         week_schedule = list()
         parity = Date.get_parity()
-
         if next_week:
             weekday = Date.get_next_monday_date()
             week_number = Date.get_study_week_number() + 1
@@ -287,21 +285,17 @@ class DB:
                 parity = 1
             else:
                 parity = 0
-
         else:
             weekday = Date.get_today_date()
             week_number = Date.get_study_week_number()
             start_day = Date.get_day_number()
-
         shift = 0
-
         for day in range(start_day, 8):
             new_date = Date.find_date(weekday, shift)
             title = Date.get_formatted_date_title(new_date, week_number)
             result = title + self.get_day_schedule(group_id, parity, day)
             week_schedule.append(result)
             shift = shift + 1
-
         return week_schedule
 
     def close_connection(self):
