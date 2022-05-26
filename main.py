@@ -5,10 +5,11 @@ from telebot import types
 from threading import Thread
 
 from db import DB
+from log import Logger
+from date import Date
 from downloader import Downloader
 from html_parser import HTMLParser
 from xlsx_parser import XLSXParser
-from log import Logger
 
 
 def get_token(filename):
@@ -39,10 +40,23 @@ def start_bot():
 def get_authorized_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     schedule_button = types.KeyboardButton('Расписание')
-    help_button = types.KeyboardButton('Список команд')
+    help_button = types.KeyboardButton('Помощь')
     delete_button = types.KeyboardButton('Отписаться от группы')
     markup.add(schedule_button, help_button)
     markup.add(delete_button)
+    return markup
+
+
+def get_schedule_markup():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    today_button = types.KeyboardButton('Сегодня')
+    tomorrow_button = types.KeyboardButton('Завтра')
+    this_week_button = types.KeyboardButton('Эта неделя')
+    next_week_button = types.KeyboardButton('Следующая неделя')
+    menu_button = types.KeyboardButton('Меню')
+    markup.add(today_button, tomorrow_button)
+    markup.add(this_week_button, next_week_button)
+    markup.add(menu_button)
     return markup
 
 
@@ -92,8 +106,11 @@ def set_group(message):
 @bot.message_handler(content_types=['text'])
 def func(message):
     user_id = message.from_user.id
-    if message.text == 'Расписание':  # TODO: ВЫВОД РАСПИСАНИЯ
-        pass
+    group_id = db.get_user_group_id(user_id)
+    if message.text == 'Расписание':
+        bot.send_message(message.chat.id,
+                         text='Выберите нужный вариант',
+                         reply_markup=get_schedule_markup())
     elif message.text == 'Отписаться от группы':
         db.unsubscribe_user(user_id)
         bot.send_message(message.chat.id,
@@ -102,10 +119,42 @@ def func(message):
                          text='Введите группу в формате <b><i>АААА-00-00</i></b>',
                          reply_markup=get_no_markup(),
                          parse_mode='html')
-    else:  # TODO: ОБРАБОТКА ОСТАЛЬНЫХ КНОПОК
+    elif message.text == 'Сегодня':
         bot.send_message(message.chat.id,
-                         text='Сделайте то, о чем вас просят',
-                         reply_markup=get_no_markup())
+                         parse_mode='html',
+                         text=db.get_day_schedule(group_id,
+                                                  Date.get_parity(),
+                                                  Date.get_day_number()))
+    elif message.text == 'Завтра':
+        bot.send_message(message.chat.id,
+                         parse_mode='html',
+                         text=db.get_day_schedule(group_id,
+                                                  Date.get_parity(),
+                                                  Date.get_day_number(),
+                                                  shift=1,))
+    elif message.text == 'Эта неделя':
+        for day in db.get_week_schedule(group_id):
+            bot.send_message(message.chat.id,
+                             parse_mode='html',
+                             text=day,
+                             reply_markup=get_schedule_markup())
+    elif message.text == 'Следующая неделя':
+        for day in db.get_week_schedule(group_id, next_week=True):
+            bot.send_message(message.chat.id,
+                             parse_mode='html',
+                             text=day,
+                             reply_markup=get_schedule_markup())
+    elif message.text == 'Меню':
+        bot.send_message(message.chat.id,
+                         text='Главное меню',
+                         reply_markup=get_authorized_markup())
+    elif message.text == 'Помощь':
+        bot.send_message(message.chat.id,
+                         text='Обратная связь:\ndarkholme.master@gmail.com',
+                         parse_mode='html')
+    else:
+        bot.send_message(message.chat.id,
+                         text='Введите то, о чем вас просят, или нажмите одну из кнопок')
 
 
 if db.has_records():
