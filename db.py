@@ -213,26 +213,9 @@ class DB:
         except sqlite3.DatabaseError:
             Logger.error(f'ПОЛЬЗОВАТЕЛЬ НЕ ОТВЯЗАН ОТ ГРУППЫ - [{user_id}]')
 
-    def get_day_schedule(self, group_id, parity, day_id, shift=0, all_week=False):
-        if day_id == 6 and shift == 1 and not all_week:  # Сегодня суббота, а расписание на завтра (воскресенье)
-            day = Date.get_formatted_date_title(shift)
-            return day + '<pre>Выходной день</pre>'
-        elif day_id == 7 and (shift == 0 or all_week):  # Сегодня воскресенье, и расписание на сегодня (воскресенье)
-            day = Date.get_formatted_date_title(shift)
-            return day + '<pre>Выходной день</pre>'
-        elif day_id == 7 and shift == 1:  # Сегодня воскресенье, а расписание на завтра (понедельник)
-            day_id = 1
-            if parity == 0:
-                parity = 1
-            else:
-                parity = 0
-            day = Date.get_formatted_date_title(shift, 1)
-        else:  # Нормальные дни
-            if all_week:
-                day = Date.get_formatted_date_title(shift)
-            else:
-                day = Date.get_formatted_date_title(shift)
-                day_id = day_id + shift
+    def get_day_schedule(self, group_id, parity, day_id):
+        if day_id == 7:
+            return '<pre>Выходной день</pre>'
         try:
             cursor = self.__connection.cursor()
             cmd = '''SELECT s.para, s.subject, s.subject_type, s.teacher, s.auditorium FROM Schedule s
@@ -248,7 +231,7 @@ class DB:
                 if row[1] == '-':
                     dash_count = dash_count + 1
             if dash_count == 6:
-                return day + '<pre>Выходной день</pre>'
+                return '<pre>Выходной день</pre>'
             for row in records:
                 para = row[0]
                 subject = row[1]
@@ -260,27 +243,66 @@ class DB:
                 txt = f'<b>({para} пара)</b> <i>[{st}]</i>\n<u>{subject}</u>\n<pre>{teacher}</pre>\n<b>{cab}</b>\n\n'
                 text = text + txt
             Logger.ok(f'РАСПИСАНИЕ ПОЛУЧЕНО - ГРУППА[{group_id}] ДЕНЬ[{day_id}] ЧЕТНОСТЬ[{parity}]')
-            return day + text
+            return text
         except sqlite3.DatabaseError:
             Logger.error(f'РАСПИСАНИЕ ПОЛУЧЕНО - ГРУППА[{group_id}] ДЕНЬ[{day_id}] ЧЕТНОСТЬ[{parity}]')
 
-    def get_week_schedule(self, group_id, next_week=False):
-        ret = list()
+    def get_today(self, group_id):
+        date = Date.get_today_date()
+        day = Date.get_day_number()
         parity = Date.get_parity()
-        if next_week:
-            current_day = 1
+        week_number = Date.get_study_week_number()
+        title = Date.get_formatted_date_title(date, week_number)
+        schedule = self.get_day_schedule(group_id, parity, day)
+        return title + schedule
+
+    def get_tomorrow(self, group_id):
+        day = Date.get_day_number() + 1
+        parity = Date.get_parity()
+        week_number = Date.get_study_week_number()
+        if day == 8:
+            day = 1
+            week_number = week_number + 1
+            date = Date.get_next_monday_date()
             if parity == 0:
                 parity = 1
             else:
                 parity = 0
         else:
-            current_day = Date.get_day_number()
+            date = Date.find_date(Date.get_today_date(), 1)
+        title = Date.get_formatted_date_title(date, week_number)
+        schedule = self.get_day_schedule(group_id, parity, day)
+        return title + schedule
+
+    def get_week(self, group_id, next_week=False):
+
+        week_schedule = list()
+        parity = Date.get_parity()
+
+        if next_week:
+            weekday = Date.get_next_monday_date()
+            week_number = Date.get_study_week_number() + 1
+            start_day = 1
+            if parity == 0:
+                parity = 1
+            else:
+                parity = 0
+
+        else:
+            weekday = Date.get_today_date()
+            week_number = Date.get_study_week_number()
+            start_day = Date.get_day_number()
+
         shift = 0
-        for current_day in range(current_day, 8):
-            res = self.get_day_schedule(group_id, parity, current_day, shift, all_week=True)
-            ret.append(res)
+
+        for day in range(start_day, 8):
+            new_date = Date.find_date(weekday, shift)
+            title = Date.get_formatted_date_title(new_date, week_number)
+            result = title + self.get_day_schedule(group_id, parity, day)
+            week_schedule.append(result)
             shift = shift + 1
-        return ret
+
+        return week_schedule
 
     def close_connection(self):
         self.__connection.close()
