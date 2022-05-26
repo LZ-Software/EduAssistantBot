@@ -72,7 +72,7 @@ class XLSXParser:
 
                     for i in range(start, end):
 
-                        current_row = ws[i]
+                        current_row = ws[i+1]
 
                         subject = current_row[column_index].value
                         subject_type = current_row[column_index + 1].value
