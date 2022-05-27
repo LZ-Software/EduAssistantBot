@@ -181,9 +181,13 @@ class DB:
             cmd = 'SELECT group_id FROM User_To_Group WHERE user_id = :uid'
             cursor.execute(cmd, {'uid': user_id})
             record = cursor.fetchone()
-            gid = record[0]
-            Logger.ok(f'ГРУППА ПОЛЬЗОВАТЕЛЯ ПОЛУЧЕНА - [{user_id}] [{gid}]')
-            return gid
+            if record is None:
+                Logger.error(f'ГРУППА ПОЛЬЗОВАТЕЛЯ НЕ ПОЛУЧЕНА - [{user_id}]')
+                return None
+            else:
+                gid = record[0]
+                Logger.ok(f'ГРУППА ПОЛЬЗОВАТЕЛЯ ПОЛУЧЕНА - [{user_id}] [{gid}]')
+                return gid
         except sqlite3.DatabaseError:
             Logger.error(f'ГРУППА ПОЛЬЗОВАТЕЛЯ НЕ ПОЛУЧЕНА - [{user_id}]')
             return None
